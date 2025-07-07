@@ -1,6 +1,7 @@
 from graph.models.state import QAState
 from graph.utils.search import perform_web_search
 from graph.config import llm
+from graph.prompts.templates import prompt_builder
 
 def search_web_node(state: QAState) -> QAState:
     """
@@ -9,12 +10,16 @@ def search_web_node(state: QAState) -> QAState:
     if state.get("search_type") != "web":
         return state
     
+    # 웹 검색 시도 횟수 추적
+    current_tries = state.get("web_search_tries", 0) or 0
+    
     question = state.get("question", "")
     search_results = perform_web_search(question)
     return {
         **state,
         "web_search_results": search_results,
-        "search_type": "web"
+        "search_type": "web",
+        "web_search_tries": current_tries + 1
     }
 
 def web_answer_node(state: QAState) -> QAState:
@@ -23,11 +28,7 @@ def web_answer_node(state: QAState) -> QAState:
     """
     question = state.get("question", "")
     web_results = state.get("web_search_results", [])
-    if web_results:
-        context = "\n".join([f"{r['title']}: {r['snippet']}" for r in web_results])
-        prompt = f"다음 웹 검색 결과를 참고해서 질문에 답해줘:\n{context}\n\n질문: {question}"
-    else:
-        prompt = f"질문에 답해줘: {question}"
+    prompt = prompt_builder.build_web_answer_prompt(question, web_results)
     response = llm.predict(prompt)
     print(f"[DEBUG] 웹검색 답변 생성: {response}")
     return {**state, "answer": response} 

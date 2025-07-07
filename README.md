@@ -36,6 +36,7 @@ graph-vibe/
         ├── base.py            # 기본 노드 클래스
         ├── node_registry.py   # 노드 등록 관리
         ├── classify.py        # 질문 분류 노드
+        ├── query_refinement.py # 질의 수정 노드
         ├── answer.py          # 기본 답변 생성 노드
         ├── quality.py         # 품질 평가 노드
         ├── rag/               # RAG 관련 노드들
@@ -56,7 +57,7 @@ graph-vibe/
 ```
 시작
   ↓
-질문 분류 → 처리 방식 결정
+질문 분류 → 질의 수정 → 처리 방식 결정
   ↓
 ┌─────────────────┬─────────────────┬─────────────────┐
 │   RAG 플로우    │   웹 검색 플로우 │   기본 플로우   │
@@ -90,7 +91,12 @@ graph-vibe/
    - 질문 유형 분석 (역사, 수학, 번역, 일반, 최신 정보 등)
    - `question_type` 필드에 결과 저장
 
-2. **처리 방식 결정** (`decide_next`)
+2. **질의 수정** (`query_refinement`)
+   - 최초 질문을 더 구체적이고 명확하게 수정
+   - 질문 유형에 따라 컨텍스트 기반 수정
+   - 검색이나 답변에 도움이 되는 키워드 추가
+
+3. **처리 방식 결정** (`decide_next`)
    - RAG 사용 여부 확인 (키워드 기반)
    - 웹 검색 필요성 확인 (최신 정보 요청)
    - 기본 답변 생성 여부 결정
@@ -113,6 +119,8 @@ graph-vibe/
 ### 기본 노드들
 
 - **`classify_node`**: 질문 분류 및 유형 분석
+- **`query_refinement_node`**: 질문 수정 및 개선
+- **`contextual_query_refinement_node`**: 컨텍스트 기반 질문 수정
 - **`answer_node`**: 기본 답변 생성
 - **`quality_node`**: 답변 품질 평가
 
@@ -155,6 +163,9 @@ class QAState(TypedDict):
     needs_regeneration: Optional[bool]  # 재생성 필요 여부
     needs_more_search: Optional[bool]   # 추가 검색 필요 여부
     question_type: Optional[str]     # 질문 분류 결과
+    original_question: Optional[str] # 원본 질문
+    query_refined: Optional[bool]    # 질문 수정 여부
+    refinement_type: Optional[str]   # 수정 유형 (basic, contextual)
 ```
 
 ## 🚀 사용 방법
@@ -192,6 +203,10 @@ python main.py
 
 ❓ 질문: 파이썬으로 웹 스크래핑하는 방법
 🧠 답변: [RAG 기반 답변] 파이썬 웹 스크래핑에 대해...
+
+❓ 질문: 날씨가 어때?
+🔄 질의 수정: 현재 위치의 날씨 정보를 알려주세요
+🧠 답변: 현재 위치의 날씨 정보를 제공하기 위해서는...
 ```
 
 ## 🔧 설정

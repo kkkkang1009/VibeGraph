@@ -37,12 +37,54 @@ def decide_quality_next(state: QAState) -> str:
 def decide_sufficient_next(state: QAState) -> str:
     """
     RAG sufficient 평가 결과 분기 (sufficient_score)
+    단계적 접근: 재검색 → query 재수정 → 다른 전략
     """
-    mapping = {
-        "sufficient": "rag_answer",
-        "search_more": "search_documents"
-    }
-    return decide_next(state, "sufficient_score", mapping, tries_limit=MAX_TRIES)
+    score = state.get("sufficient_score")
+    tries = state.get("rag_search_tries", 0)
+    
+    if score == "sufficient":
+        return "rag_answer"
+    elif score == "needs_more_search":
+        # 단계적 접근
+        if tries == 0:
+            # 첫 번째 시도: 같은 query로 재검색
+            return "search_documents"
+        elif tries == 1:
+            # 두 번째 시도: query 재수정 후 검색
+            return "contextual_query_refinement"
+        else:
+            # 세 번째 이상: 다른 검색 전략 또는 기본 답변
+            return "default_answer"
+    else:
+        return "search_documents"  # fallback
+
+
+def decide_web_quality_next(state: QAState) -> str:
+    """
+    웹 검색 품질 평가 결과 분기 (web_quality_score)
+    단계적 접근: 재검색 → query 재수정 → 다른 전략
+    """
+    score = state.get("web_quality_score")
+    tries = state.get("web_search_tries", 0)
+    
+    if score == "sufficient":
+        return "web_answer"
+    elif score == "needs_more_search":
+        # 단계적 접근
+        if tries == 0:
+            # 첫 번째 시도: 같은 query로 재검색
+            return "search_web"
+        elif tries == 1:
+            # 두 번째 시도: query 재수정 후 검색
+            return "contextual_query_refinement"
+        else:
+            # 세 번째 이상: 다른 검색 전략 또는 기본 답변
+            return "default_answer"
+    elif score == "refine_query":
+        # query 재수정이 필요한 경우
+        return "contextual_query_refinement"
+    else:
+        return "web_answer"  # fallback
 
 # 미사용 함수 (향후 확장 시 사용 가능)
 # def decide_satisfaction_next(state: QAState) -> str:

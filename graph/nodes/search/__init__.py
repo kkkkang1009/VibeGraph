@@ -1,8 +1,8 @@
 from graph.nodes.search.answer import WebPromptNode
-from graph.nodes.search.web import search_web_node, generate_web_answer_node
+from graph.nodes.search.web import search_web_node, web_answer_node
 
 __all__ = [
-    "WebAnswerNode",
+    "WebPromptNode",
     "search_web_node",
-    "generate_web_answer_node"
+    "web_answer_node"
 ] 

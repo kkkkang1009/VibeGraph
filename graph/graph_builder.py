@@ -19,36 +19,38 @@ def build_graph():
     
     # 3. 엣지/분기 추가
     
-    # (1) 분류 플로우
+    # (1) 분류 후 분기
     builder.add_conditional_edges(
         "classify_question",
         lambda state: state.get("question_type", "basic"),
         {
             "web": "search_web",
             "rag": "search_documents",
-            "basic": "generate_answer"
+            "basic": "default_answer"
         }
     )
     
     # (2) 웹 검색 플로우
     builder.add_edge("search_web", "web_prompt")
+    builder.add_edge("web_prompt", "web_answer")
+    builder.add_edge("web_answer", "final_quality")
     
     # (3) RAG 플로우
-    builder.add_edge("search_documents", "generate_rag_answer")
-    builder.add_edge("generate_rag_answer", "sufficient")
+    builder.add_edge("search_documents", "sufficient")
+    builder.add_edge("rag_answer", "final_quality")
     
     # (4) 기본 플로우
-    builder.add_edge("generate_answer", "final_quality")
+    builder.add_edge("default_answer", "final_quality")
     
     # (5) 품질 평가 결과 분기
     builder.add_conditional_edges(
         "final_quality",
         decide_quality_next,
         {
-            "generate_answer": "generate_answer",
-            "generate_web_answer": "generate_web_answer",
-            "generate_rag_answer": "generate_rag_answer",
-            "end": "end"
+            "default_answer": "default_answer",
+            "web_answer": "web_answer",
+            "rag_answer": "rag_answer",
+            "end": END
         }
     )
     
@@ -57,7 +59,7 @@ def build_graph():
         "sufficient",
         decide_sufficient_next,
         {
-            "sufficient": "generate_rag_answer",
+            "sufficient": "rag_answer",
             "search_more": "search_documents"
         }
     )

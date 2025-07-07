@@ -141,15 +141,14 @@ class QAState(TypedDict):
     satisfied: Optional[bool]        # 만족도
     tries: int                       # 시도 횟수
 
-    # RAG 관련
+    # 검색 관련
+    search_type: Optional[str]       # 검색 유형 (web, rag, None)
     retrieved_documents: Optional[List[str]]  # 검색된 문서들
     document_sources: Optional[List[str]]     # 문서 출처들
     search_query: Optional[str]      # 검색 쿼리
-    use_rag: bool                    # RAG 사용 여부
     
     # 웹 검색 관련
     web_search_results: Optional[List[str]]  # 웹 검색 결과
-    use_web_search: bool             # 웹 검색 사용 여부
     
     # 품질 관리
     quality_score: Optional[str]     # 품질 점수

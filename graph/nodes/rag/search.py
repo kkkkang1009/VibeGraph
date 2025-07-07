@@ -5,9 +5,9 @@ def search_documents_node(state: QAState) -> QAState:
     """
     문서 검색 노드
     """
-    if not state.get("use_rag", False):
+    if state.get("search_type") != "rag":
         return state
-    search_query = state["question"]
+    search_query = state.get("question", "")
     documents = search_documents(search_query)
     return {
         **state,

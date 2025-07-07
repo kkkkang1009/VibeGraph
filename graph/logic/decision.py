@@ -23,15 +23,15 @@ def decide_quality_next(state: QAState) -> str:
     qtype = state.get("question_type", "basic")
     if score == "regenerate":
         if qtype == "rag":
-            return "generate_rag_answer"
+            return "rag_answer"
         elif qtype == "web":
             return "generate_web_answer"
         else:
-            return "generate_answer"
+            return "default_answer"
     elif score == "good" or score == "fail":
         return "end"
     else:
-        return "generate_answer"
+        return "default_answer"
 
 
 def decide_sufficient_next(state: QAState) -> str:
@@ -39,7 +39,7 @@ def decide_sufficient_next(state: QAState) -> str:
     RAG sufficient 평가 결과 분기 (sufficient_score)
     """
     mapping = {
-        "sufficient": "generate_rag_answer",
+        "sufficient": "rag_answer",
         "search_more": "search_documents"
     }
     return decide_next(state, "sufficient_score", mapping, tries_limit=MAX_TRIES)

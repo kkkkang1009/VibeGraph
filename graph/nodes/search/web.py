@@ -6,6 +6,9 @@ def search_web_node(state: QAState) -> QAState:
     """
     온라인 웹 검색 노드
     """
+    if state.get("search_type") != "web":
+        return state
+    
     question = state.get("question", "")
     search_results = perform_web_search(question)
     return {
@@ -14,7 +17,7 @@ def search_web_node(state: QAState) -> QAState:
         "search_type": "web"
     }
 
-def generate_web_answer_node(state: QAState) -> QAState:
+def web_answer_node(state: QAState) -> QAState:
     """
     웹 검색 결과를 활용한 답변 생성 노드
     """
